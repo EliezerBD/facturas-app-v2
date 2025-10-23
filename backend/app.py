@@ -17,7 +17,7 @@ CORS(app)
 # Configuración Google
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
-REDIRECT_URI = 'http://localhost:5000/auth/callback'
+REDIRECT_URI = os.environ.get('REDIRECT_URI', 'https://facturas-app-v2-2.onrender.com/auth/callback')
 
 # Almacenar tokens (en memoria, para desarrollo)
 user_tokens = {}
@@ -30,6 +30,15 @@ def serve_frontend():
 @app.route('/<path:path>')
 def serve_static(path):
     return send_from_directory('.', path)
+
+# Páginas requeridas para OAuth
+@app.route('/privacy')
+def privacy():
+    return "Política de Privacidad - Esta app respeta tu privacidad y solo accede a los datos necesarios para buscar facturas en Gmail."
+
+@app.route('/terms')
+def terms():
+    return "Términos de Servicio - Esta app es para uso personal de búsqueda de facturas en Gmail."
 
 # Autenticación Google
 @app.route('/auth/google', methods=['GET'])
@@ -83,7 +92,7 @@ def google_callback():
         # Guardar token
         user_tokens[state] = credentials.token
         
-        return redirect('http://localhost:5000/#auth_success')
+        return redirect('https://facturas-app-v2-2.onrender.com/#auth_success')
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
