@@ -2,6 +2,7 @@ class GmailDownloader {
     constructor() {
         this.correctPassword = "78945coe";
         this.isAuthenticated = false;
+        this.currentState = null;
         this.init();
     }
 
@@ -23,18 +24,12 @@ class GmailDownloader {
 
     checkAuthStatus() {
         console.log('Verificando estado de autenticación...');
-        console.log('Hash actual:', window.location.hash);
         
-        // Verificar si ya está autenticado por URL hash
-        if (window.location.hash === '#auth_success' || window.location.hash === '#authenticated') {
+        if (window.location.hash === '#auth_success') {
             console.log('Autenticación detectada, mostrando app principal...');
             this.showMainApp();
-            this.loadEmails();
             this.showNotification('✅ Conectado a Gmail correctamente', 'success');
-            // Limpiar el hash sin recargar
             history.replaceState(null, null, ' ');
-        } else {
-            console.log('No hay autenticación activa');
         }
     }
 
@@ -45,8 +40,11 @@ class GmailDownloader {
             const response = await fetch('/auth/google');
             const data = await response.json();
             
-            if (data.authUrl) {
-                // Redirigir a Google para autenticación
+            if (data.authUrl && data.state) {
+                this.currentState = data.state;
+                localStorage.setItem('oauth_state', data.state);
+                console.log('State guardado:', data.state);
+                
                 window.location.href = data.authUrl;
             } else {
                 this.showNotification('Error al conectar con Google', 'error');
@@ -63,7 +61,6 @@ class GmailDownloader {
 
         if (enteredPassword === this.correctPassword) {
             this.showMainApp();
-            this.loadEmails();
             this.showNotification('✅ Acceso concedido', 'success');
         } else {
             this.showNotification('❌ Contraseña incorrecta', 'error');
@@ -75,24 +72,11 @@ class GmailDownloader {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('main-screen').classList.remove('hidden');
         this.isAuthenticated = true;
-    }
-
-    async loadEmails() {
-        try {
-            this.showLoading();
-            
-            const response = await fetch('/api/emails');
-            const data = await response.json();
-            
-            if (data.success) {
-                this.displayEmails(data.emails);
-                this.showNotification(`Cargados ${data.total} emails`, 'success');
-            } else {
-                this.showNotification('Error al cargar emails', 'error');
-            }
-        } catch (error) {
-            this.showNotification('Error de conexión', 'error');
-            console.error('Error:', error);
+        
+        const savedState = localStorage.getItem('oauth_state');
+        if (savedState) {
+            this.currentState = savedState;
+            console.log('State recuperado:', this.currentState);
         }
     }
 
@@ -108,6 +92,8 @@ class GmailDownloader {
         try {
             this.showLoading();
             
+            console.log('Enviando state:', this.currentState);
+            
             const response = await fetch('/api/search', {
                 method: 'POST',
                 headers: {
@@ -115,7 +101,8 @@ class GmailDownloader {
                 },
                 body: JSON.stringify({
                     search: searchTerm,
-                    fileType: fileType
+                    fileType: fileType,
+                    state: this.currentState
                 })
             });
             
@@ -128,7 +115,7 @@ class GmailDownloader {
                     `Mostrando ${data.total} emails`;
                 this.showNotification(message, 'success');
             } else {
-                this.showNotification('Error en la búsqueda', 'error');
+                this.showNotification(data.error || 'Error en la búsqueda', 'error');
             }
         } catch (error) {
             this.showNotification('Error de conexión', 'error');
@@ -182,7 +169,6 @@ class GmailDownloader {
             </div>
         `).join('');
 
-        // Agregar eventos a los checkboxes
         document.querySelectorAll('.file-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', (e) => {
                 const fileItem = e.target.closest('.file-item');
@@ -207,8 +193,6 @@ class GmailDownloader {
             JSON.parse(checkbox.dataset.email)
         );
 
-        // Si es 1 archivo: descarga individual
-        // Si son 2+: descarga ZIP
         if (selectedEmails.length === 1) {
             this.simulateDownload(selectedEmails[0]);
         } else {
@@ -223,7 +207,10 @@ class GmailDownloader {
             const response = await fetch('/api/download-batch', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ emails: emails })
+                body: JSON.stringify({ 
+                    emails: emails,
+                    state: this.currentState
+                })
             });
 
             if (response.ok) {
