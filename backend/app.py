@@ -40,6 +40,19 @@ def privacy():
 def terms():
     return "Términos de Servicio - Esta app es para uso personal de búsqueda de facturas en Gmail."
 
+# Rutas adicionales de callback para compatibilidad
+@app.route('/auth/google/callback')
+def google_callback_alias1():
+    return google_callback()
+
+@app.route('/api/auth/callback/google')
+def google_callback_alias2():
+    return google_callback()
+
+@app.route('/callback')
+def google_callback_alias3():
+    return google_callback()
+
 # Autenticación Google
 @app.route('/auth/google', methods=['GET'])
 def google_auth():
@@ -61,7 +74,7 @@ def google_auth():
         auth_url, state = flow.authorization_url(prompt='consent')
         user_tokens[state] = None
         
-        return jsonify({'authUrl': auth_url})
+        return jsonify({'authUrl': auth_url, 'state': state})  # ⬅️ IMPORTANTE: Devolver state
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -89,7 +102,7 @@ def google_callback():
         flow.fetch_token(code=code)
         credentials = flow.credentials
         
-        # Guardar token
+        # Guardar token CON EL STATE CORRECTO
         user_tokens[state] = credentials.token
         
         return redirect('https://facturas-app-v2-2.onrender.com/#auth_success')
@@ -97,14 +110,15 @@ def google_callback():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# BÚSQUEDA REAL EN GMAIL
+# BÚSQUEDA REAL EN GMAIL - VERSIÓN SEGURA
 @app.route('/api/search', methods=['POST'])
 def search_emails():
-    """Busca emails REALES en Gmail"""
+    """Busca emails REALES en Gmail del usuario actual"""
     try:
         data = request.json
         search_term = data.get('search', '').lower()
         file_type = data.get('fileType', 'all')
+        user_state = data.get('state')  # ⬅️ IDENTIFICAR USUARIO
         
         # Palabras clave para buscar facturas
         keywords = ["factura", "comprobante", "recibo", "pago", "DTE", "documento tributario", "FACT-"]
@@ -115,17 +129,15 @@ def search_emails():
         else:
             query = f"({' OR '.join(keywords)})"
         
-        # Para desarrollo, intentamos con el primer token disponible
-        access_token = None
-        for token in user_tokens.values():
-            if token:
-                access_token = token
-                break
-        
+        # ⬅️ SEGURO: Verificar usuario específico
+        if not user_state or user_state not in user_tokens:
+            return jsonify({'error': 'Usuario no autenticado'}), 401
+            
+        access_token = user_tokens[user_state]
         if not access_token:
-            return jsonify({'error': 'No hay token de acceso disponible'}), 401
+            return jsonify({'error': 'Token de acceso no disponible'}), 401
         
-        # Crear servicio de Gmail con el token
+        # Crear servicio de Gmail con el token DEL USUARIO CORRECTO
         credentials = Credentials(token=access_token)
         service = build('gmail', 'v1', credentials=credentials)
         
@@ -208,13 +220,18 @@ def get_emails():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# DESCARGA EN ZIP
+# DESCARGA EN ZIP - VERSIÓN SEGURA
 @app.route('/api/download-batch', methods=['POST'])
 def download_batch():
     """Descarga todos los archivos en ZIP"""
     try:
         data = request.json
         selected_emails = data.get('emails', [])
+        user_state = data.get('state')  # ⬅️ VERIFICAR USUARIO
+        
+        # Verificar autenticación
+        if not user_state or user_state not in user_tokens:
+            return jsonify({'error': 'Usuario no autenticado'}), 401
         
         # Crear ZIP
         zip_buffer = io.BytesIO()
