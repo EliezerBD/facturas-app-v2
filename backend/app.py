@@ -16,9 +16,9 @@ app = Flask(__name__)
 # --- Configuración ---
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
-APP_PASSWORD = os.getenv('APP_PASSWORD', '78945coe') # Fallback temporal, pero idealmente debe estar en .env
-REDIRECT_URI = os.environ.get('REDIRECT_URI', 'https://facturas-app-v2-2.onrender.com/auth/callback')
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://facturas-app-v2-2.onrender.com')
+APP_PASSWORD = os.getenv('APP_PASSWORD') 
+REDIRECT_URI = os.getenv('REDIRECT_URI') 
+FRONTEND_URL = os.getenv('FRONTEND_URL') # Debe estar en .env
 
 # Configuración de CORS restringida
 CORS(app, resources={
