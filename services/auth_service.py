@@ -9,7 +9,8 @@ class AuthService:
         # Cargamos las credenciales desde variables de entorno
         self.client_id = os.getenv('CLIENT_ID')
         self.client_secret = os.getenv('CLIENT_SECRET')
-        self.redirect_uri = os.environ.get('REDIRECT_URI', 'http://localhost:5000/auth/callback')
+        # Si falla la variable de entorno, usamos la URL de Render a la fuerza
+        self.redirect_uri = os.environ.get('REDIRECT_URI', 'https://facturas-app-v2.onrender.com/auth/callback')
         
         # Definimos los permisos (scopes) que necesitamos
         # gmail.readonly: Solo permite leer correos y adjuntos, no enviar ni borrar
