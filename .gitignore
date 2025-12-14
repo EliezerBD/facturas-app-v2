@@ -1,80 +1,44 @@
-# ==============================================================================
-# GITIGNORE - FACTURAS APP
-# ==============================================================================
-
-# ------------------------------------------------------------------------------
-# 1. SECRETOS Y CONFIGURACIÓN (¡CRÍTICO!)
-# ------------------------------------------------------------------------------
-# Archivos que contienen claves API, contraseñas o configuración local.
-# NUNCA deben subirse al repositorio.
-config.env
-.env
-.env.*
-*.env
-secrets.json
-instance/
-
-# ------------------------------------------------------------------------------
-# 2. PYTHON
-# ------------------------------------------------------------------------------
-# Archivos compilados y caché de Python
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-*.dll
-*.dylib
-
-# Entornos Virtuales (diferentes convenciones de nombres)
-venv/
-.venv/
+.Python
 env/
-.env/
-virtualenv/
-
-# Distribución y empaquetado
-build/
-dist/
+venv/
+ENV/
 *.egg-info/
-.eggs/
 
-# Logs de Python
+# Environment variables (IMPORTANTE: proteger credenciales)
+config.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
 *.log
 
-# ------------------------------------------------------------------------------
-# 3. ARCHIVOS GENERADOS POR LA APP
-# ------------------------------------------------------------------------------
-# Archivos temporales de descargas o zips generados
-*.zip
-*.pdf
-*.xml
-temp/
-tmp/
-downloads/
+# Docker
+.dockerignore
 
-# ------------------------------------------------------------------------------
-# 4. SISTEMA OPERATIVO
-# ------------------------------------------------------------------------------
-# Archivos de metadatos de carpetas (Mac/Windows)
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-Desktop.ini
+# Virtual Environments created by user
+.env
+.venv
+env/
+venv/
 
-# ------------------------------------------------------------------------------
-# 5. ENTORNOS DE DESARROLLO (IDEs)
-# ------------------------------------------------------------------------------
-# VS Code
-.vscode/
-*.code-workspace
+# Build artifacts
+build/
+dist/
+*.spec
 
-# JetBrains (PyCharm, WebStorm, etc.)
-.idea/
-*.iml
-
-
-backend/config.env 
+# Testing
+.pytest_cache/
+htmlcov/
