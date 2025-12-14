@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descargar Archivos de Gmail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-gradient-to-br from-blue-500 to-purple-600 min-h-screen p-4">
+    <div class="container max-w-4xl mx-auto bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden">
+
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-8 text-center">
+            <h1 class="text-3xl font-bold mb-4">📧 Descargar Archivos de Gmail</h1>
+            <div class="app-info">
+                <h2 class="text-xl font-semibold mb-2">Buscador de Facturas</h2>
+                <p class="opacity-90">Conecta tu Gmail y descarga facturas automáticamente</p>
+            </div>
+        </header>
+
+        <!-- Notificaciones -->
+        <div id="notification-container" class="p-4 space-y-3">
+            <!-- Notificaciones aparecerán aquí -->
+        </div>
+
+        <!-- Pantalla 1: Login -->
+        <div id="login-screen" class="p-8">
+            <div class="max-w-md mx-auto bg-gray-50 rounded-xl p-8 shadow-lg">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Conectar con Gmail</h2>
+                    <p class="text-gray-600">Conéctate para buscar tus facturas</p>
+                </div>
+
+                <!-- Botón Google -->
+                <button onclick="connectGmail()"
+                    class="w-full bg-white flex items-center text-gray-700 justify-center gap-3 text-sm sm:text-base border border-gray-300 rounded-lg hover:bg-gray-50 duration-300 transition-colors px-6 py-3 mb-4">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z"
+                            fill="#4285F4" />
+                        <path
+                            d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3276 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z"
+                            fill="#34A853" />
+                        <path
+                            d="M5.50253 14.3003C4.99987 12.8099 4.99987 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z"
+                            fill="#FBBC04" />
+                        <path
+                            d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z"
+                            fill="#EA4335" />
+                    </svg>
+                    <span>Iniciar sesión con Google</span>
+                </button>
+
+
+
+            </div>
+        </div>
+
+        <!-- Pantalla 2: Buscador (oculta inicialmente) -->
+        <div id="main-screen" class="hidden p-6">
+            <!-- Barra de búsqueda mejorada -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div class="flex flex-col lg:flex-row gap-4 mb-4">
+                    <!-- Buscador principal -->
+                    <div class="flex-1 relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+                            </svg>
+                        </div>
+                        <input type="text" id="search-input" placeholder="Buscar en emails..."
+                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+
+                    <button onclick="searchFiles()"
+                        class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+                        </svg>
+                        Buscar
+                    </button>
+                </div>
+
+                <!-- Filtros de fecha -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Desde:</label>
+                        <input type="date" id="start-date"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Hasta:</label>
+                        <input type="date" id="end-date"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de archivo:</label>
+                        <select id="file-type"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="all">Todos los archivos</option>
+                            <option value="pdf">Solo PDF</option>
+                            <option value="json">Solo JSON</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resultados -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Archivos Encontrados</h3>
+                    <span id="results-count"
+                        class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">0</span>
+                </div>
+
+                <div id="results-list" class="space-y-3">
+                    <div class="text-center py-8 text-gray-500">
+                        Haz clic en "Buscar" para ver archivos
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles de descarga -->
+            <div class="flex flex-wrap gap-3 justify-center mt-6">
+                <button onclick="downloadSelected()"
+                    class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 15v3c0 .5523.44772 1 1 1h16c.5523 0 1-.4477 1-1v-3M3 15V6c0-.55228.44772-1 1-1h16c.5523 0 1 .44772 1 1v9M3 15h18M8 15v4m4-4v4m4-4v4m-5.5061-7.4939L12 10m0 0 1.5061-1.50614M12 10l1.5061 1.5061M12 10l-1.5061-1.50614" />
+                    </svg>
+                    Descargar Seleccionados
+                </button>
+
+                <button onclick="selectAll()"
+                    class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8.5 11.5 11 14l4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    Seleccionar Todos
+                </button>
+
+                <button onclick="clearSelection()"
+                    class="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 15v3c0 .5523.44772 1 1 1h16c.5523 0 1-.4477 1-1v-3M3 15V6c0-.55228.44772-1 1-1h16c.5523 0 1 .44772 1 1v9M3 15h18M8 15v4m4-4v4m4-4v4m-5.5061-7.4939L12 10m0 0 1.5061-1.50614M12 10l1.5061 1.5061M12 10l-1.5061-1.50614" />
+                    </svg>
+                    Limpiar Selección
+                </button>
+            </div>
+        </div>
+
+        <footer class="bg-gray-100 text-center p-6 text-gray-600 border-t">
+            <p>Sistema personal de descargas - Uso individual</p>
+        </footer>
+    </div>
+
+    <script src="appwed.js"></script>
+</body>
+
+</html>

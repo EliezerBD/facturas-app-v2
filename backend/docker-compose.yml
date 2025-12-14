@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  facturas-app:
+    build: .
+    container_name: facturas-gmail-app
+    ports:
+      - "5000:5000"
+    volumes:
+      # Montar el código fuente para desarrollo en caliente
+      - .:/app
+      # Proteger la carpeta de dependencias de Python
+      - /app/__pycache__
+    env_file:
+      - config.env
+    environment:
+      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=1
+      - FRONTEND_URL=http://localhost:5000
+      - REDIRECT_URI=http://localhost:5000/auth/callback
+    restart: unless-stopped
+    networks:
+      - facturas-network
+
+networks:
+  facturas-network:
+    driver: bridge
