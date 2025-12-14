@@ -12,31 +12,49 @@ from dotenv import load_dotenv
 load_dotenv('config.env')
 
 app = Flask(__name__)
-# Permitir credenciales y todos los orígenes para la API
-CORS(app, resources={
-    "/api/*": {"origins": "*", "supports_credentials": True},
-    "/auth/*": {"origins": "*", "supports_credentials": True}
-})
 
-# --- Configuración Google ---
+# --- Configuración ---
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
-# Asegúrate que esta es la URL exacta en tu consola de Google Cloud
-REDIRECT_URI = os.environ.get('REDIRECT_URI', 'https://facturas-app-v2-2.onrender.com/auth/callback')
-# URL del frontend al que redirigiremos con el token
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://facturas-app-v2-2.onrender.com')
+APP_PASSWORD = os.getenv('APP_PASSWORD') 
+REDIRECT_URI = os.getenv('REDIRECT_URI') 
+FRONTEND_URL = os.getenv('FRONTEND_URL') # Debe estar en .env
 
-# --- Servir el frontend ---
+# Configuración de CORS restringida
+CORS(app, resources={
+    r"/api/*": {"origins": FRONTEND_URL, "supports_credentials": True},
+    r"/auth/*": {"origins": FRONTEND_URL, "supports_credentials": True}
+})
+
+# --- Servir el frontend de forma segura ---
 @app.route('/')
-def serve_frontend():
+def serve_index():
     return send_from_directory('.', 'index.html')
 
-@app.route('/<path:path>')
-def serve_static(path):
-    # Proteger contra la descarga de archivos sensibles
-    if path == 'app.py' or path == 'config.env':
+@app.route('/<path:filename>')
+def serve_static(filename):
+    # Lista blanca de extensiones permitidas
+    allowed_extensions = {'.css', '.js', '.png', '.jpg', '.jpeg', '.ico', '.svg'}
+    _, ext = os.path.splitext(filename)
+    
+    if ext.lower() not in allowed_extensions:
         return jsonify({'error': 'Acceso prohibido'}), 403
-    return send_from_directory('.', path)
+        
+    return send_from_directory('.', filename)
+
+# --- Login con Contraseña ---
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.json
+    password = data.get('password')
+    
+    if password == APP_PASSWORD:
+        response = make_response(jsonify({'success': True}))
+        # Cookie de sesión simple para indicar que está logueado en la app
+        response.set_cookie('app_session', 'active', httponly=True, secure=True, samesite='Lax')
+        return response
+    else:
+        return jsonify({'error': 'Contraseña incorrecta'}), 401
 
 # --- Páginas requeridas para OAuth ---
 @app.route('/privacy')
