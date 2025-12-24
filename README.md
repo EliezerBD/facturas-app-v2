@@ -1,48 +1,26 @@
-# 🇸🇻 Buscador de Facturas Electrónicas (DTE) - El Salvador
+# 🇸🇻 FactorDTE
 
-Este proyecto soluciona el caos de recibir **Facturas Electrónicas (DTE)** por correo.
-Automatiza la búsqueda y descarga masiva de facturas desde Gmail, facilitando la contabilidad y el cumplimiento con Hacienda.
+Hacer la contabilidad en El Salvador puede ser un dolor de cabeza cuando todas las facturas llegan perdidas en el correo. Creé esta herramienta para automatizar el proceso de buscar, filtrar y descargar esos archivos DTE directamente desde Gmail sin tener que entrar uno por uno.
 
-**Funcionalidades:**
-1.  **🔍 Busca** facturas automáticamente en Gmail.
-2.  **📅 Filtra** por fechas o tipo de archivo.
-3.  **📦 Descarga** todo en un solo ZIP ordenado.
-
----
-
-## 🚀 Cómo usarlo
-
-### 1. Configuración (Local)
-Clona el proyecto y crea un archivo `.env` o `config.env` con tus credenciales:
-
-```env
-CLIENT_ID=...
-CLIENT_SECRET=...
-FRONTEND_URL=http://localhost:5000
-REDIRECT_URI=http://localhost:5000/auth/callback
-```
-
-### 2. Ejecutar con Docker (Fácil)
-```bash
-docker-compose up --build
-```
-Abre `http://localhost:5000`.
-
-### 3. Subir a Producción (Render)
-Esta app está lista para **Render**.
-
-1. Crea un **Web Service**.
-2. Conecta tu GitHub.
-3. **Configuración:**
-   - **Runtime:** `Docker`
-   - **Root Directory:** `.` (Déjalo en blanco)
-4. Agrega tus variables de entorno (`CLIENT_ID`, etc).
+### ¿Qué hace exactamente?
+- **Escaneo Inteligente:** Busca en tu Gmail correos que contengan facturas electrónicas.
+- **Filtros por Fecha:** No descarga todo, solo lo que necesites para tu declaración o control mensual.
+- **Descarga Consolidada:** Te genera un archivo ZIP con todos los documentos ordenados, listo para procesar.
 
 ---
 
-## 🛠️ Estructura
-El proyecto está organizado para ser simple y modular:
-- `app.py`: Servidor principal.
-- `services/`: Lógica de conexión con Gmail.
-- `static/`: Frontend (HTML/JS).
-- `Dockerfile`: Configuración de despliegue.
+## 🌐 Prueba la App en Vivo
+Puedes ver el buscador funcionando aquí: **[FacturaFlow en Render](https://facturas-app-v2.onrender.com/)**
+
+> ⏳ **Nota:** Como el servidor está en el plan gratuito de Render, la primera vez que entres puede tardar unos **50 segundos** en cargar mientras se "despierta". ¡Vale la pena la espera!
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+- **Backend:** Python con Flask para la lógica del servidor.
+- **Integración:** API de Gmail para el escaneo de correos.
+- **Frontend:** HTML y JavaScript limpio y funcional.
+- **Despliegue:** Docker para un entorno estable y escalable.
+
+---
+*Hecho por [Eliezer Beltrán](https://github.com/EliezerBD). ¡Espero que te sirva tanto como a mí!*
