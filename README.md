@@ -10,7 +10,7 @@ Hacer la contabilidad en El Salvador puede ser un dolor de cabeza cuando todas l
 ---
 
 ## 🌐 Prueba la App en Vivo
-Puedes ver el buscador funcionando aquí: **[FacturaFlow en Render](https://facturas-app-v2.onrender.com/)**
+Puedes ver el buscador funcionando aquí: **[ FactorDTE](https://facturas-app-v2.onrender.com/)**
 
 > ⏳ **Nota:** Como el servidor está en el plan gratuito de Render, la primera vez que entres puede tardar unos **50 segundos** en cargar mientras se "despierta". ¡Vale la pena la espera!
 
