@@ -132,7 +132,8 @@ def search_emails():
         emails = gmail_service.search_emails(
             search_term=data.get('search', '').lower(),
             start_date=data.get('startDate'),
-            end_date=data.get('endDate')
+            end_date=data.get('endDate'),
+            file_type=data.get('fileType', 'all')
         )
         
         return jsonify({'success': True, 'emails': emails, 'total': len(emails)})

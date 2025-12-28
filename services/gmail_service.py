@@ -16,7 +16,7 @@ class GmailService:
         # Construimos el cliente de la API de Gmail (versión v1)
         self.service = build('gmail', 'v1', credentials=self.credentials)
 
-    def search_emails(self, search_term=None, start_date=None, end_date=None):
+    def search_emails(self, search_term=None, start_date=None, end_date=None, file_type='all'):
         """
         Busca emails en Gmail que coincidan con los filtros.
         Devuelve una lista simplificada de emails encontrados.
@@ -25,21 +25,37 @@ class GmailService:
         keywords = ["factura", "comprobante", "recibo", "pago", "DTE", "documento tributario", "FACT-"]
         
         # Construcción de la query de búsqueda (sintaxis de Gmail: "label:inbox has:attachment ...")
+        # Unimos las palabras clave con OR en un solo grupo
+        keywords_query = f"({' OR '.join(keywords)})"
+        
         if search_term:
-            # Si el usuario escribió algo, buscamos eso O las palabras clave
-            query = f"({') OR ('.join(keywords)}) {search_term}"
+            # Si el usuario escribió algo, buscamos (palabras clave) AND (término de búsqueda)
+            query = f"{keywords_query} {search_term}"
         else:
             # Si no, solo buscamos las palabras clave
-            query = f"({' OR '.join(keywords)})"
+            query = keywords_query
         
         # Filtro obligatorio: debe tener adjuntos
         query += " has:attachment"
+
+        # Filtro de tipo de archivo si no es 'all'
+        if file_type and file_type != 'all':
+            query += f" filename:{file_type}"
         
-        # Filtros de fecha
+        # Filtros de fecha (Gmail prefiere YYYY/MM/DD)
         if start_date:
-            query += f" after:{start_date}"
+            query += f" after:{start_date.replace('-', '/')}"
         if end_date:
-            query += f" before:{end_date}"
+            # Gmail 'before' es EXCLUSIVO (no incluye el día exacto).
+            # Para que sea inclusivo, sumamos un día.
+            from datetime import datetime, timedelta
+            try:
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                next_day = end_dt + timedelta(days=1)
+                query += f" before:{next_day.strftime('%Y/%m/%d')}"
+            except:
+                # Si falla el parseo, usamos el formato original con slashes
+                query += f" before:{end_date.replace('-', '/')}"
             
         print(f"Buscando en Gmail con query: {query}")
         

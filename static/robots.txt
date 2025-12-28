@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /privacidad.html
+Allow: /terminos.html
+
+# Sitemap location
+Sitemap: https://facturas-app-v2-2.onrender.com/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1

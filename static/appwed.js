@@ -23,8 +23,16 @@ class GmailDownloader {
      * Por ejemplo, permitir buscar al presionar "Enter".
      */
     bindEvents() {
+        // Buscar al presionar Enter en el buscador
         document.getElementById('search-input')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.searchFiles();
+        });
+
+        // Buscar automáticamente al cambiar filtros
+        ['start-date', 'end-date', 'file-type'].forEach(id => {
+            document.getElementById(id)?.addEventListener('change', () => {
+                this.searchFiles();
+            });
         });
     }
 
