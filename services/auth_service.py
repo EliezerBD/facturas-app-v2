@@ -14,7 +14,12 @@ class AuthService:
         
         # Definimos los permisos (scopes) que necesitamos
         # gmail.readonly: Solo permite leer correos y adjuntos, no enviar ni borrar
-        self.scopes = ['https://www.googleapis.com/auth/gmail.readonly']
+        self.scopes = [
+            'https://www.googleapis.com/auth/gmail.readonly',
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile',
+            'openid'
+        ]
         
         # Configuración estándar para el flujo de Google
         self.flow_config = {
