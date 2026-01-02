@@ -1,0 +1,17 @@
+{
+  "name": "Facturas App",
+  "short_name": "FacturasApp",
+  "description": "Gestiona tus facturas de Gmail con IA y seguridad de Google.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2611/2611110.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

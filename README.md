@@ -144,7 +144,7 @@ Esta aplicación está optimizada para:
 
 ---
 
-## 🤝 Contribuciones
+##  Contribuciones
 
 ¡Las contribuciones son bienvenidas! Por favor:
 
@@ -156,13 +156,13 @@ Esta aplicación está optimizada para:
 
 ---
 
-## 📄 Licencia
+##  Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detalles.
 
 ---
 
-## 👨‍💻 Autor
+## 👨 Autor
 
 **Eliezer Beltrán**
 - GitHub: [@EliezerBD](https://github.com/EliezerBD)
@@ -170,7 +170,7 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 ---
 
-## 🙏 Agradecimientos
+##  Agradecimientos
 
 - Google Gmail API por su excelente documentación
 - Comunidad de Flask por el framework
@@ -178,11 +178,11 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 ---
 
-## 📊 Keywords SEO
+##  Keywords SEO
 
 `facturas gmail` · `descarga masiva facturas` · `facturas electrónicas` · `DTE El Salvador` · `Gmail API` · `descargar PDF gmail` · `automatizar facturas` · `buscador de facturas` · `facturas automáticas` · `gestión de facturas`
 
 ---
 
-**⭐ Si te sirvió este proyecto, no olvides darle una estrella en GitHub! ⭐**
+** Si te sirvió este proyecto, no olvides darle una estrella en GitHub! **
 

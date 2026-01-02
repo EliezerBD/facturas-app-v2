@@ -20,7 +20,8 @@ app = Flask(__name__, static_folder='static', static_url_path='')
 allowed_origins = [
     "http://localhost:5000",                   # Desarrollo local
     "http://127.0.0.1:5000",                   # Desarrollo local (IP)
-    "https://facturas-app-v2-2.onrender.com"   # Tu dominio de producción
+    "https://facturas-app-v2.onrender.com",   # Tu dominio de producción V2
+    "https://facturas-app-iujw.onrender.com"   # Nuevo dominio Render
 ]
 
 CORS(app, resources={
@@ -108,6 +109,16 @@ def check_session():
     """
     token = request.cookies.get('gmail_token')
     if token:
+        try:
+            auth_service = AuthService()
+            user_info = auth_service.get_user_info(token)
+            if user_info and 'email' in user_info:
+                return jsonify({
+                    'authenticated': True,
+                    'email': user_info['email']
+                })
+        except Exception:
+            pass
         return jsonify({'authenticated': True})
     return jsonify({'authenticated': False}), 401
 

@@ -61,3 +61,20 @@ class AuthService:
         
         # Devuelve solo el token (string)
         return flow.credentials.token
+    def get_user_info(self, access_token):
+        """
+        Obtiene la información del perfil del usuario (como el email) 
+        usando el token de acceso.
+        """
+        import requests
+        try:
+            response = requests.get(
+                'https://www.googleapis.com/oauth2/v3/userinfo',
+                headers={'Authorization': f'Bearer {access_token}'}
+            )
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except Exception as e:
+            print(f"Error obteniendo user info: {str(e)}")
+            return None

@@ -1,64 +1,52 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /* Eliminamos el gradient porque Tailwind lo maneja */
-    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    background-color: #f8fafc;
 }
 
-/* Mantenemos solo lo esencial */
-.container {
-    max-width: 1000px;
-    margin: 0 auto;
+.glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
-.hidden {
-    display: none !important;
+.gradient-bg {
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
 }
 
-/* Mejoramos compatibilidad */
-.file-item {
-    transition: all 0.3s ease;
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
 }
 
-.btn-primary, .btn-secondary {
-    transition: all 0.2s ease;
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
 }
 
-/* Responsive - complementa Tailwind */
-@media (max-width: 768px) {
-    .container {
-        margin: 10px;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.btn-hover {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
     }
-}
 
-/* Estilos para elementos específicos que Tailwind no cubre */
-.password-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-}
-
-.error-message {
-    color: #d32f2f;
-    background: #ffebee;
-    padding: 12px;
-    border-radius: 6px;
-    margin-top: 15px;
-    border: 1px solid #f5c6cb;
-}
-
-/* Loading animation personalizada */
-@keyframes spin {
     to {
-        transform: rotate(360deg);
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-.animate-spin {
-    animation: spin 1s linear infinite;
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
 }
