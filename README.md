@@ -36,7 +36,7 @@ Ideal para contadores, empresas y profesionales en El Salvador 🇸🇻 que nece
 - **Sin almacenamiento** de credenciales
 - Cookies HTTPOnly y Secure
 - Cumple con políticas de privacidad de Google
-- [Ver Política de Privacidad](https://facturas-app-v2-2.onrender.com/privacidad.html)
+- [Ver Política de Privacidad](https://facturas-app-v2.onrender.com/)
 
 ### 💼 Casos de Uso
 - ✅ Contadores que gestionan facturas de múltiples clientes
