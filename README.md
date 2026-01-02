@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
-[![Estado](https://img.shields.io/badge/Estado-Activo-success.svg)](https://facturas-app-v2-2.onrender.com/)
+[![Estado](https://img.shields.io/badge/Estado-Activo-success.svg)](https://facturas-app-v2.onrender.com/)
 
 **Herramienta web gratuita para descargar facturas electrónicas de Gmail de forma automática y masiva.**
 
@@ -36,7 +36,7 @@ Ideal para contadores, empresas y profesionales en El Salvador 🇸🇻 que nece
 - **Sin almacenamiento** de credenciales
 - Cookies HTTPOnly y Secure
 - Cumple con políticas de privacidad de Google
-- [Ver Política de Privacidad](https://facturas-app-v2.onrender.com/)
+- [Ver Política de Privacidad](https://facturas-app-v2.onrender.com/privacidad.html)
 
 ### 💼 Casos de Uso
 - ✅ Contadores que gestionan facturas de múltiples clientes

@@ -5,7 +5,7 @@ Allow: /privacidad.html
 Allow: /terminos.html
 
 # Sitemap location
-Sitemap: https://facturas-app-v2-2.onrender.com/sitemap.xml
+Sitemap: https://facturas-app-v2.onrender.com/sitemap.xml
 
 # Crawl-delay
 Crawl-delay: 1
