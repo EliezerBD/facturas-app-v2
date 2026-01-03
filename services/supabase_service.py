@@ -47,7 +47,7 @@ class SupabaseService:
         
         params = {
             "usuario_email": f"eq.{user_email}",
-            "select": "codigo_generacion,nombre_archivo,gmail_message_id"
+            "select": "codigo_generacion,nombre_archivo,gmail_message_id,emisor"
         }
 
         try:

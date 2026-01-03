@@ -33,20 +33,28 @@ FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5000')
 # Ruta para servir la página principal del frontend
 @app.route('/')
 def serve_frontend():
+    print("Sirviendo index.html")
     # Envía el archivo index.html ubicado en la carpeta static
     return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/api/ping')
+def ping():
+    return jsonify({'status': 'ok', 'message': 'pong'})
 
 # Ruta para iniciar el proceso de autenticación con Google
 @app.route('/auth/google', methods=['GET'])
 def google_auth():
+    print("Recibida petición en /auth/google")
     try:
         # Instanciar el servicio de autenticación
         auth_service = AuthService()
         # Obtener la URL de autorización y el estado único
         auth_url, state = auth_service.get_auth_url()
+        print(f"URL de autenticación generada correctamente: {auth_url[:50]}...")
         # Retornar la URL al frontend para la redirección
         return jsonify({'authUrl': auth_url, 'state': state})
     except Exception as e:
+        print(f"Error en /auth/google: {str(e)}")
         # En caso de error, retornar el mensaje y código 500
         return jsonify({'error': str(e)}), 500
 
@@ -139,11 +147,17 @@ def search_emails():
         user_email = user_info.get('email', 'anónimo')
         
         user_history = supabase_service.get_user_history(user_email)
-        # Crear un set de IDs de mensajes ya descargados por este usuario
-        downloaded_ids = {h['gmail_message_id'] for h in user_history if h.get('gmail_message_id')}
+        # Crear un mapa de IDs de mensajes a sus registros de historial
+        history_map = {h['gmail_message_id']: h for h in user_history if h.get('gmail_message_id')}
 
         for email in emails:
-            email['downloaded'] = email['id'] in downloaded_ids
+            hist_record = history_map.get(email['id'])
+            if hist_record:
+                email['downloaded'] = True
+                email['codigo_generacion'] = hist_record.get('codigo_generacion')
+                email['emisor_registrado'] = hist_record.get('emisor')
+            else:
+                email['downloaded'] = False
 
         # Retornar la lista de correos encontrados
         return jsonify({'success': True, 'emails': emails, 'total': len(emails)})
@@ -213,13 +227,9 @@ def download_batch():
                     dte = dte_map.get(filename, {})
                     history_rows.append({
                         "usuario_email": user_email,
-                        "asunto_correo": email.get('subject', 'Sin asunto'),
                         "nombre_archivo": filename,
                         "emisor": email.get('from', 'Desconocido'),
                         "codigo_generacion": dte.get('codigo_generacion'),
-                        "numero_control": dte.get('numero_control'),
-                        "monto_total": dte.get('monto_total'),
-                        "receptor_nombre": dte.get('receptor_nombre'),
                         "gmail_message_id": email.get('id')
                     })
 

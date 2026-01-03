@@ -21,5 +21,5 @@ ENV FLASK_APP=app.py
 ENV PYTHONUNBUFFERED=1
 
 # Comando para ejecutar la aplicación
-# Usamos Gunicorn para producción
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+# Usamos Gunicorn para producción con logs de acceso habilitados
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--access-logfile", "-", "app:app"]

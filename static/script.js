@@ -1,5 +1,5 @@
-// La configuración de Supabase se ha movido al backend por seguridad
-const supabase = null;
+// La configuración de Supabase se ha movido al backend por seguridad (ahora se usa la librería global si fuera necesario)
+// const supabase = null;
 
 // Inicializar los iconos de la librería Lucide
 lucide.createIcons();
@@ -35,10 +35,17 @@ function parseHashParams() {
     };
 }
 
-/**
- * Verifica el estado de autenticación al cargar la página.
- */
 async function checkAuthStatus() {
+    console.log("Verificando conexión con el servidor...");
+    try {
+        const pingRes = await fetch('/api/ping');
+        const pingData = await pingRes.json();
+        console.log("Servidor responde:", pingData);
+    } catch (e) {
+        console.error("ERROR: No se pudo conectar con el servidor Flask en Docker.");
+        showToast("Error crítico: No hay conexión con el servidor", "error");
+    }
+
     const { authSuccess } = parseHashParams();
 
     if (authSuccess) {
@@ -93,16 +100,24 @@ function showMainApp(email) {
  */
 async function mockLogin() {
     try {
+        console.log("Iniciando login...");
         showToast("Conectando con Google...", "info");
+
         const response = await fetch('/auth/google');
+        console.log("Respuesta de /auth/google recibida. Status:", response.status);
+
         const data = await response.json();
+        console.log("Datos recibidos:", data);
 
         if (data.authUrl) {
+            console.log("Redirigiendo a:", data.authUrl);
             window.location.href = data.authUrl; // Redirigir a Google
         } else {
+            console.error("No se recibió authUrl");
             showToast("Error al conectar con Google", "error");
         }
     } catch (error) {
+        console.error("Error en mockLogin:", error);
         showToast("Error de conexión", "error");
     }
 }
@@ -212,11 +227,22 @@ function renderResults() {
                     ${email.downloaded ? '<span class="px-2 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded-full uppercase tracking-wider">Ya descargado</span>' : ''}
                 </div>
                 <div class="flex flex-wrap gap-2 text-xs text-slate-500 mt-0.5">
-                    <span class="font-medium">${email.from}</span>
+                    <span class="font-medium">${email.emisor_registrado || email.from}</span>
                     <span class="text-slate-300">|</span>
                     <span>${email.date}</span>
                 </div>
-                <div class="text-[10px] text-slate-400 mt-1 truncate">${email.snippet}</div>
+                <div class="text-[10px] text-slate-400 mt-1 truncate flex items-center gap-2">
+                    ${email.codigo_generacion ? `
+                        <button onclick="event.stopPropagation(); navigator.clipboard.writeText('${email.codigo_generacion}'); showToast('Código copiado', 'success')" 
+                            class="group/code inline-flex items-center gap-1.5 bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-blue-700 px-2 py-0.5 rounded-md font-mono text-[9px] border border-slate-200 hover:border-blue-200 transition-colors" title="Clic para copiar código">
+                            <i data-lucide="hash" class="w-3 h-3 text-slate-400 group-hover/code:text-blue-500"></i>
+                            <span class="truncate max-w-[150px]">${email.codigo_generacion}</span>
+                            <i data-lucide="copy" class="w-3 h-3 opacity-0 group-hover/code:opacity-100 transition-opacity"></i>
+                        </button>
+                    ` : ''}
+
+                    <span class="ml-1 opacity-75">${email.snippet}</span>
+                </div>
             </div>
             <div class="hidden sm:block text-right text-[10px] text-slate-400 font-bold ml-4">
                 ${email.attachments.length} adjunto(s)

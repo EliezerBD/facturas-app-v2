@@ -203,9 +203,6 @@ class GmailService:
                 # Extraemos los campos que me mostraste en el ejemplo
                 dte_info = {
                     'codigo_generacion': content.get('identificacion', {}).get('codigoGeneracion'),
-                    'numero_control': content.get('identificacion', {}).get('numeroControl'),
-                    'monto_total': content.get('resumen', {}).get('montoTotalOperacion'),
-                    'receptor_nombre': content.get('receptor', {}).get('nombre'),
                     'emisor_nombre': content.get('emisor', {}).get('nombre'),
                     'filename': filename
                 }

@@ -46,8 +46,8 @@ class AuthService:
         # Establecer la URL de redirección en el flujo
         flow.redirect_uri = self.redirect_uri
         
-        # Generar la URL de autorización solicitando consentimiento explícito (prompt='consent')
-        auth_url, state = flow.authorization_url(prompt='consent')
+        # Generar la URL de autorización permitiendo elegir cuenta y solicitando consentimiento
+        auth_url, state = flow.authorization_url(prompt='select_account consent')
         return auth_url, state
 
     def get_token_from_code(self, code):
