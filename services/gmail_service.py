@@ -1,3 +1,4 @@
+# Importación de librerías para manejo de datos, archivos zip y comunicaciones con la API de Google
 import base64
 import os
 import zipfile
@@ -7,137 +8,139 @@ from google.oauth2.credentials import Credentials
 
 class GmailService:
     """
-    Servicio encargado de interactuar con la API de Gmail.
-    Realiza búsquedas, procesa correos y descarga adjuntos.
+    Servicio especializado en interactuar con la API de Gmail.
+    Se encarga de buscar correos, procesar su contenido y descargar archivos adjuntos.
     """
     def __init__(self, token):
-        # Creamos las credenciales usando el token del usuario
+        # Crear objeto de credenciales de Google utilizando el token de acceso del usuario
         self.credentials = Credentials(token=token)
-        # Construimos el cliente de la API de Gmail (versión v1)
+        # Construir el cliente del servicio de Gmail (versión v1)
         self.service = build('gmail', 'v1', credentials=self.credentials)
 
     def search_emails(self, search_term=None, start_date=None, end_date=None, file_type='all'):
         """
-        Busca emails en Gmail que coincidan con los filtros.
-        Devuelve una lista simplificada de emails encontrados.
+        Busca correos electrónicos en la cuenta del usuario aplicando múltiples filtros.
         """
-        # Palabras clave para intentar encontrar facturas automáticamente
+        # Lista de palabras clave para identificar posibles facturas o documentos tributarios
         keywords = ["factura", "comprobante", "recibo", "pago", "DTE", "documento tributario", "FACT-"]
         
-        # Construcción de la query de búsqueda (sintaxis de Gmail: "label:inbox has:attachment ...")
-        # Unimos las palabras clave con OR en un solo grupo
+        # Agrupar las palabras clave usando el operador OR para la búsqueda de Gmail
         keywords_query = f"({' OR '.join(keywords)})"
         
+        # Si se proporcionó un término de búsqueda manual, se añade a la consulta
         if search_term:
-            # Si el usuario escribió algo, buscamos (palabras clave) AND (término de búsqueda)
             query = f"{keywords_query} {search_term}"
         else:
-            # Si no, solo buscamos las palabras clave
             query = keywords_query
         
-        # Filtro obligatorio: debe tener adjuntos
+        # Requisito indispensable: el correo debe contener al menos un archivo adjunto
         query += " has:attachment"
 
-        # Filtro de tipo de archivo si no es 'all'
+        # Filtrar por extensión de archivo si no se seleccionó 'todos' (all)
         if file_type and file_type != 'all':
             query += f" filename:{file_type}"
         
-        # Filtros de fecha (Gmail prefiere YYYY/MM/DD)
+        # Filtrar por fecha de inicio (formato after:YYYY/MM/DD)
         if start_date:
             query += f" after:{start_date.replace('-', '/')}"
+        
+        # Filtrar por fecha de fin (formato before:YYYY/MM/DD)
         if end_date:
-            # Gmail 'before' es EXCLUSIVO (no incluye el día exacto).
-            # Para que sea inclusivo, sumamos un día.
             from datetime import datetime, timedelta
             try:
+                # Gmail 'before' es exclusivo; sumamos un día para que el rango sea inclusivo
                 end_dt = datetime.strptime(end_date, '%Y-%m-%d')
                 next_day = end_dt + timedelta(days=1)
                 query += f" before:{next_day.strftime('%Y/%m/%d')}"
             except:
-                # Si falla el parseo, usamos el formato original con slashes
+                # Si hay error en el formato, se usa la fecha tal cual reemplazando guiones por barras
                 query += f" before:{end_date.replace('-', '/')}"
             
-        print(f"Buscando en Gmail con query: {query}")
+        print(f"Iniciando búsqueda en Gmail con la consulta: {query}")
         
-        # Ejecutar la búsqueda (solo trae IDs y snippets, no el contenido completo aún)
+        # Ejecutar la petición de listado de mensajes que coinciden con los criterios
         results = self.service.users().messages().list(
             userId='me', 
             q=query,
-            maxResults=25 # Límite de resultados para no saturar
+            maxResults=25 # Limitar a los 25 resultados más recientes para optimizar rendimiento
         ).execute()
         
+        # Obtener la lista de mensajes (cada uno contiene ID y threadId)
         messages = results.get('messages', [])
         emails_found = []
         
-        # Procesar cada mensaje encontrado para obtener detalles
+        # Iterar sobre cada mensaje encontrado para extraer su información detallada
         for msg in messages:
             try:
+                # Procesar el contenido del mensaje por su ID
                 email_data = self._process_message(msg['id'])
                 if email_data:
                     emails_found.append(email_data)
             except Exception as e:
-                print(f"Error procesando email {msg['id']}: {str(e)}")
+                # En caso de error en un correo específico, imprimirlo y continuar con el siguiente
+                print(f"Error procesando el correo con ID {msg['id']}: {str(e)}")
                 continue
                 
         return emails_found
 
     def _process_message(self, msg_id):
         """
-        Método privado para obtener los detalles completos de un mensaje específico.
+        Método interno para obtener y estructurar los datos relevantes de un correo electrónico.
         """
+        # Solicitar el contenido completo del mensaje
         message = self.service.users().messages().get(
             userId='me', 
             id=msg_id,
-            format='full' # Pedimos toda la info (headers, cuerpo, adjuntos)
+            format='full' 
         ).execute()
         
         payload = message.get('payload', {})
         headers = payload.get('headers', [])
         
-        # Extraer metadatos de los headers
+        # Extraer el asunto (Subject), remitente (From) y fecha (Date) desde las cabeceras
         subject = next((h['value'] for h in headers if h['name'] == 'Subject'), 'Sin asunto')
         sender = next((h['value'] for h in headers if h['name'] == 'From'), 'Desconocido')
         date = next((h['value'] for h in headers if h['name'] == 'Date'), '')
         
-        # Buscar adjuntos (puede haber anidados, por eso usamos una función recursiva)
+        # Buscar recursivamente todos los adjuntos en las partes del mensaje (formato multipart)
         parts = payload.get('parts', [])
         attachments = self._find_attachments_recursive(msg_id, parts)
         
-        # Si no tiene adjuntos válidos (PDF/XML/JSON), ignoramos este correo
+        # Si el correo no tiene adjuntos válidos (PDF, XML, JSON), se descarta de la lista
         if not attachments:
             return None
             
+        # Retornar un diccionario estructurado con la información del correo
         return {
             'id': msg_id,
             'subject': subject,
             'from': sender,
             'date': date[:16] if date else 'Desconocida',
-            'snippet': message.get('snippet', '')[:100] + '...',
+            'snippet': message.get('snippet', '')[:100] + '...', # Fragmento del texto del correo
             'attachments': attachments 
         }
 
     def _find_attachments_recursive(self, msg_id, parts):
         """
-        Busca adjuntos explorando todas las partes del email (multipart).
-        Es recursiva porque un email puede tener partes dentro de partes.
+        Busca archivos adjuntos de forma recursiva en la estructura de partes del correo.
         """
         attachments = []
         if not parts:
             return []
 
         for part in parts:
-            # Verificamos si esta parte es un adjunto real
+            # Si la parte tiene nombre de archivo y un ID de adjunto, es un archivo real
             if part.get('filename') and part.get('body') and part.get('body').get('attachmentId'):
                 filename = part.get('filename')
-                # Filtramos por extensión
+                # Solo procesar archivos con extensiones relevantes (PDF, XML, JSON)
                 if filename.lower().endswith(('.pdf', '.xml', '.json')):
                     attachments.append({
                         'filename': filename,
                         'mimeType': part.get('mimeType'),
-                        'attachmentId': part['body']['attachmentId'] # ID necesario para descargarlo luego
+                        'attachmentId': part['body']['attachmentId'] # Necesario para la descarga posterior
                     })
             
-            # Si esta parte tiene sub-partes, nos llamamos a nosotros mismos (recursión)
+            # Si la parte contiene sub-partes, realizar la búsqueda en ellas (recursión)
             if 'parts' in part:
                 attachments.extend(self._find_attachments_recursive(msg_id, part['parts']))
                 
@@ -145,34 +148,38 @@ class GmailService:
 
     def download_attachments_as_zip(self, selected_emails):
         """
-        Crea un archivo ZIP en memoria que contiene todos los adjuntos solicitados.
+        Descarga los adjuntos y extrae metadatos si son JSON de DTE.
         """
-        zip_buffer = io.BytesIO() # Buffer en memoria (no guardamos en disco del servidor)
+        zip_buffer = io.BytesIO()
+        all_extracted_metadata = [] # Nueva lista para guardar los datos de los JSON
         
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            filenames_added = set() # Para evitar nombres duplicados dentro del ZIP
+            filenames_added = set()
 
             for email in selected_emails:
                 msg_id = email['id']
                 for attachment in email.get('attachments', []):
                     try:
-                        self._add_attachment_to_zip(zip_file, msg_id, attachment, filenames_added)
+                        # Llamamos a la función y capturamos si extrajo info del DTE
+                        dte_data = self._add_attachment_to_zip(zip_file, msg_id, attachment, filenames_added)
+                        if dte_data:
+                            all_extracted_metadata.append(dte_data)
                     except Exception as e:
-                        print(f"Error descargando adjunto {attachment.get('filename')}: {str(e)}")
-                        # Si falla uno, agregamos un archivo de texto explicando el error
+                        print(f"Error descargando el archivo {attachment.get('filename')}: {str(e)}")
                         zip_file.writestr(f"ERROR_{attachment.get('filename')}.txt", str(e))
 
-        zip_buffer.seek(0) # Rebobinar el buffer para poder leerlo desde el principio
-        return zip_buffer
+        zip_buffer.seek(0)
+        return zip_buffer, all_extracted_metadata # Ahora devolvemos buffer y metadatos
 
     def _add_attachment_to_zip(self, zip_file, msg_id, attachment, filenames_added):
         """
-        Descarga el contenido binario de un adjunto y lo escribe en el ZIP.
+        Descarga el adjunto y, si es JSON, extrae la información del DTE.
         """
+        import json
         att_id = attachment['attachmentId']
         filename = attachment['filename']
         
-        # Lógica para renombrar si ya existe un archivo con el mismo nombre
+        # Manejar colisiones de nombres
         original_filename = filename
         counter = 1
         while filename in filenames_added:
@@ -181,17 +188,31 @@ class GmailService:
             counter += 1
         filenames_added.add(filename)
 
-        print(f"Descargando: {filename}")
-        
-        # Petición a la API de Gmail para obtener los datos del adjunto
+        # Petición a la API de Gmail
         attachment_data_raw = self.service.users().messages().attachments().get(
-            userId='me', 
-            messageId=msg_id, 
-            id=att_id
+            userId='me', messageId=msg_id, id=att_id
         ).execute()
         
-        # Los datos vienen en Base64 URL-safe, hay que decodificarlos a binario
         file_data = base64.urlsafe_b64decode(attachment_data_raw['data'].encode('UTF-8'))
+        
+        # --- LÓGICA DE EXTRACCIÓN DTE ---
+        dte_info = None
+        if filename.lower().endswith('.json'):
+            try:
+                content = json.loads(file_data.decode('utf-8'))
+                # Extraemos los campos que me mostraste en el ejemplo
+                dte_info = {
+                    'codigo_generacion': content.get('identificacion', {}).get('codigoGeneracion'),
+                    'numero_control': content.get('identificacion', {}).get('numeroControl'),
+                    'monto_total': content.get('resumen', {}).get('montoTotalOperacion'),
+                    'receptor_nombre': content.get('receptor', {}).get('nombre'),
+                    'emisor_nombre': content.get('emisor', {}).get('nombre'),
+                    'filename': filename
+                }
+            except:
+                pass # Si no es un formato DTE válido, simplemente lo ignoramos
         
         # Escribir en el ZIP
         zip_file.writestr(filename, file_data)
+        return dte_info
+

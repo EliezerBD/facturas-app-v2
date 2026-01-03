@@ -2,15 +2,16 @@
 <html lang="es">
 
 <head>
+    <!-- Configuración básica de caracteres y vista móvil -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- SEO Meta Tags -->
+    <!-- Etiquetas Meta para SEO (Optimización en buscadores) -->
     <meta name="google-site-verification" content="CtiXmYOCMRugPu8shPShTrAIBiZK78F-ApyiIpHoCqI" />
     <title>Facturas App - Seguridad Google</title>
     <meta name="description" content="Descarga facturas de Gmail automáticamente. Máxima seguridad con Google Cloud.">
 
-    <!-- Open Graph / Facebook -->
+    <!-- Etiquetas Open Graph para mejorar la apariencia al compartir en redes sociales (Facebook, WhatsApp) -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://facturas-app-v2.onrender.com/">
     <meta property="og:title" content="Facturas App - Seguridad Google">
@@ -18,7 +19,7 @@
         content="Gestiona y descarga tus facturas de Gmail automáticamente de forma segura.">
     <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/2611/2611110.png">
 
-    <!-- Twitter -->
+    <!-- Etiquetas específicas para Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://facturas-app-v2.onrender.com/">
     <meta property="twitter:title" content="Facturas App - Seguridad Google">
@@ -26,26 +27,30 @@
         content="Gestiona y descarga tus facturas de Gmail automáticamente de forma segura.">
     <meta property="twitter:image" content="https://cdn-icons-png.flaticon.com/512/2611/2611110.png">
 
-    <!-- Canonical & Manifest -->
+    <!-- Enlaces canónicos y manifiesto de aplicación web progresiva (PWA) -->
     <link rel="canonical" href="https://facturas-app-v2.onrender.com/">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
 
-    <!-- Fonts & Icons -->
+    <!-- Importación de librerías externas: Tailwind CSS para estilos y Lucide para iconos -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- External CSS -->
+    <!-- Hoja de estilos personalizada -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body class="text-slate-900 overflow-x-hidden">
 
-    <!-- Navbar -->
+    <!-- BARRA DE NAVEGACIÓN PRINCIPAL (NAVBAR) -->
     <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
+                <!-- Logotipo de la aplicación -->
                 <div class="flex items-center gap-2">
                     <div class="p-2 bg-blue-600 rounded-lg shadow-blue-200 shadow-lg">
                         <i data-lucide="file-text" class="text-white w-6 h-6"></i>
@@ -53,6 +58,7 @@
                     <span class="text-xl font-bold tracking-tight text-slate-800">Facturas<span
                             class="text-blue-600">App</span></span>
                 </div>
+                <!-- Distintivo de usuario (se muestra solo cuando está autenticado) -->
                 <div id="user-badge" class="hidden flex items-center gap-3">
                     <span class="text-sm text-slate-500 hidden sm:inline" id="user-email">usuario@gmail.com</span>
                     <button onclick="logout()"
@@ -66,7 +72,7 @@
 
     <main class="max-w-5xl mx-auto px-4 py-8 sm:py-12">
 
-        <!-- Hero Section -->
+        <!-- SECCIÓN DE PRESENTACIÓN (HERO SECTION) -->
         <div id="hero-section" class="text-center mb-12 animate-fade-in">
             <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
                 Gestiona tus facturas de Gmail <br>
@@ -77,9 +83,10 @@
             </p>
         </div>
 
+        <!-- Contenedor para las notificaciones flotantes (Toasts) -->
         <div id="toast-container" class="fixed top-20 right-4 z-[100] pointer-events-none"></div>
 
-        <!-- Pantalla 1: Login -->
+        <!-- PANTALLA 1: INICIO DE SESIÓN (LOGIN SCREEN) -->
         <div id="login-screen" class="max-w-md mx-auto animate-fade-in">
             <div class="glass-card rounded-3xl p-8 shadow-2xl border border-white">
                 <div class="text-center mb-8">
@@ -91,6 +98,7 @@
                     <p class="text-slate-500 mt-1">Conéctate de forma segura con Google</p>
                 </div>
 
+                <!-- Botón de inicio de sesión con Google -->
                 <button onclick="mockLogin()"
                     class="w-full btn-hover bg-white border border-slate-200 text-slate-700 font-semibold py-4 px-6 rounded-2xl flex items-center justify-center gap-3 hover:bg-slate-50 transition-all">
                     <svg class="w-5 h-5" viewBox="0 0 24 24">
@@ -112,10 +120,12 @@
             </div>
         </div>
 
-        <!-- Pantalla 2: Dashboard Principal -->
+        <!-- PANTALLA 2: PANEL PRINCIPAL (DASHBOARD) -->
         <div id="main-screen" class="hidden space-y-6 animate-fade-in">
+            <!-- Formulario de filtros de búsqueda -->
             <div class="glass-card rounded-2xl p-6 shadow-sm">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Campo de búsqueda por texto -->
                     <div class="lg:col-span-5">
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Palabra
                             clave</label>
@@ -126,6 +136,7 @@
                                 class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                         </div>
                     </div>
+                    <!-- Campos de rango de fechas -->
                     <div class="lg:col-span-4 grid grid-cols-2 gap-4">
                         <div>
                             <label
@@ -140,6 +151,7 @@
                                 class="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                     </div>
+                    <!-- Selector de formato de archivo -->
                     <div class="lg:col-span-3">
                         <label
                             class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Formato</label>
@@ -152,6 +164,7 @@
                     </div>
                 </div>
 
+                <!-- Botón para ejecutar la búsqueda -->
                 <div class="mt-6 flex flex-wrap justify-center gap-4">
                     <button onclick="simulateSearch()"
                         class="btn-hover bg-blue-600 text-white px-10 py-3.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-100 transition-all">
@@ -161,7 +174,9 @@
                 </div>
             </div>
 
+            <!-- Sección de listado de resultados -->
             <div class="glass-card rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+                <!-- Cabecera de la lista con controles de selección masiva -->
                 <div
                     class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-wrap gap-4 items-center justify-between">
                     <div class="flex items-center gap-3">
@@ -179,6 +194,7 @@
                     </div>
                 </div>
 
+                <!-- Contenedor dinámico donde se inyectan los correos encontrados -->
                 <div id="results-list" class="flex-1 overflow-y-auto custom-scrollbar max-h-[500px]">
                     <div id="empty-state" class="flex flex-col items-center justify-center py-20 px-6 text-center">
                         <div
@@ -189,12 +205,14 @@
                     </div>
                 </div>
 
+                <!-- Barra de acciones inferior (se muestra cuando hay elementos seleccionados) -->
                 <div id="action-bar"
                     class="hidden p-4 border-t border-slate-100 bg-white sticky bottom-0 flex flex-col sm:flex-row gap-4 items-center justify-between">
                     <p class="text-sm text-slate-600">
                         <span id="selected-count" class="font-bold text-blue-600">0</span> seleccionados
                     </p>
                     <div class="flex gap-2 w-full sm:w-auto">
+                        <!-- Botón para descargar el lote de archivos en un ZIP -->
                         <button onclick="mockDownload()"
                             class="flex-1 sm:flex-none btn-hover bg-green-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2">
                             <i data-lucide="download-cloud" class="w-5 h-5"></i>
@@ -207,11 +225,11 @@
     </main>
 
 
-    <!-- Footer Informativo -->
+    <!-- SECCIÓN DE PIE DE PÁGINA (FOOTER) -->
     <footer class="mt-20 bg-white border-t border-slate-200 pt-16 pb-8 px-4">
         <div class="max-w-6xl mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
-                <!-- Columna 1: Info Marca -->
+                <!-- Información de la marca y descripción general -->
                 <div class="md:col-span-5">
                     <div class="flex items-center gap-2 mb-6">
                         <div class="p-2 bg-blue-600 rounded-lg shadow-md">
@@ -226,7 +244,7 @@
                     </p>
                 </div>
 
-                <!-- Columna 2: Links -->
+                <!-- Enlaces de navegación legal y soporte -->
                 <div class="md:col-span-3">
                     <h5 class="font-bold text-slate-800 mb-6 uppercase text-xs tracking-widest">Soporte y Legal</h5>
                     <ul class="space-y-4 text-sm text-slate-600">
@@ -242,11 +260,11 @@
                     </ul>
                 </div>
 
-                <!-- Columna 3: Seguridad -->
+                <!-- Credenciales y seguridad del proyecto -->
                 <div class="md:col-span-4 flex flex-col">
                     <h5 class="font-bold text-slate-800 mb-6 uppercase text-xs tracking-widest">Seguridad Google</h5>
                     <div class="space-y-3">
-                        <!-- Badge 1 -->
+                        <!-- Indicador de verificación OAuth -->
                         <div
                             class="flex items-center gap-3 p-3 bg-blue-50/50 border border-blue-100 rounded-2xl transition-all hover:bg-blue-50">
                             <div
@@ -258,7 +276,7 @@
                                 <p class="text-[10px] text-blue-600 font-medium">Verificado por Google Cloud</p>
                             </div>
                         </div>
-                        <!-- Badge 2 -->
+                        <!-- Indicador de encriptación SSL -->
                         <div
                             class="flex items-center gap-3 p-3 bg-emerald-50/50 border border-emerald-100 rounded-2xl transition-all hover:bg-emerald-50">
                             <div
@@ -274,6 +292,7 @@
                 </div>
             </div>
 
+            <!-- Derechos de autor e info de versión -->
             <div
                 class="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
                 <p class="text-xs text-slate-400 font-medium italic">
@@ -288,7 +307,7 @@
         </div>
     </footer>
 
-    <!-- External JS -->
+    <!-- Importación del script de lógica frontend personalizado -->
     <script src="script.js"></script>
 </body>
 

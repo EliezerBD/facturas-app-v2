@@ -1,52 +1,67 @@
+/* Estilos base para el cuerpo del documento */
 body {
+    /* Tipografía moderna de Google Fonts */
     font-family: 'Inter', sans-serif;
+    /* Color de fondo suave para toda la página */
     background-color: #f8fafc;
 }
 
+/* Tarjetas con efecto de transparencia (glassmorphism) */
 .glass-card {
+    /* Fondo blanco casi opaco */
     background: rgba(255, 255, 255, 0.95);
+    /* Difuminado de fondo para profundidad */
     backdrop-filter: blur(10px);
+    /* Borde sutil para definir la tarjeta */
     border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
+/* Fondo con degradado de azul a morado */
 .gradient-bg {
     background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
 }
 
+/* Personalización de la barra de desplazamiento lateral */
 .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
+    width: 6px; /* Ancho de la barra */
 }
 
+/* Fondo de la pista de la barra de desplazamiento */
 .custom-scrollbar::-webkit-scrollbar-track {
     background: #f1f1f1;
 }
 
+/* Parte deslizable de la barra de desplazamiento */
 .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #cbd5e1;
-    border-radius: 10px;
+    border-radius: 10px; /* Bordes redondeados */
 }
 
+/* Transición suave para botones y elementos interactivos */
 .btn-hover {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Efecto visual al pasar el mouse por encima */
 .btn-hover:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px); /* Elevación ligera */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra de profundidad */
 }
 
+/* Definición de la animación de aparición gradual (fade in) */
 @keyframes fadeIn {
     from {
-        opacity: 0;
-        transform: translateY(10px);
+        opacity: 0; /* Inicio invisible */
+        transform: translateY(10px); /* Inicio ligeramente abajo */
     }
 
     to {
-        opacity: 1;
-        transform: translateY(0);
+        opacity: 1; /* Fin visible */
+        transform: translateY(0); /* Fin en posición original */
     }
 }
 
+/* Clase para aplicar la animación de aparición */
 .animate-fade-in {
     animation: fadeIn 0.4s ease-out forwards;
 }
