@@ -58,3 +58,39 @@ class SupabaseService:
         except Exception as e:
             print(f"Error recuperando historial: {str(e)}")
             return []
+
+    def save_refresh_token(self, email, refresh_token):
+        """
+        Guarda o actualiza el refresh token de Google para un usuario.
+        """
+        if not self.url or not self.key:
+            return False
+
+        # Endpoint para la tabla users
+        users_url = f"{self.url}/rest/v1/users"
+        
+        headers = {
+            "apikey": self.key,
+            "Authorization": f"Bearer {self.key}",
+            "Content-Type": "application/json",
+            "Prefer": "resolution=merge-duplicates" # Upsert (inserta o actualiza si existe)
+        }
+        
+        data = {
+            "email": email,
+            "google_refresh_token": refresh_token,
+            "updated_at": "now()"
+        }
+
+        try:
+            # Usamos POST con Prefer: resolution=merge-duplicates para comportamiento de UPSERT
+            response = requests.post(users_url, headers=headers, data=json.dumps(data))
+            if response.status_code in [200, 201]:
+                print(f"Refresh token saved for {email}")
+                return True
+            else:
+                print(f"Error saving refresh token: {response.status_code} - {response.text}")
+                return False
+        except Exception as e:
+            print(f"Connection error saving token: {str(e)}")
+            return False

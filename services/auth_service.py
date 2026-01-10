@@ -47,7 +47,11 @@ class AuthService:
         flow.redirect_uri = self.redirect_uri
         
         # Generar la URL de autorización permitiendo elegir cuenta y solicitando consentimiento
-        auth_url, state = flow.authorization_url(prompt='select_account consent')
+        auth_url, state = flow.authorization_url(
+            access_type='offline',
+            prompt='consent',
+            include_granted_scopes='true'
+        )
         return auth_url, state
 
     def get_token_from_code(self, code):
@@ -64,9 +68,30 @@ class AuthService:
         
         # Realizar la petición a los servidores de Google para obtener el token
         flow.fetch_token(code=code)
+        credentials = flow.credentials
+
+        # IMPORTANTE: Aquí es donde obtienes AMBOS
+        tokens = {
+            "access_token": credentials.token,
+            "refresh_token": credentials.refresh_token, # Esta es la llave maestra
+            "expires_at": credentials.expiry.isoformat() if credentials.expiry else None
+        }
         
-        # Retornar únicamente la cadena del token de acceso
-        return flow.credentials.token
+        # --- NUEVO: GUARDAR EL REFRESH TOKEN EN SUPABASE ---
+        if tokens["refresh_token"]:
+            try:
+                # Necesitamos el email del usuario para saber de quién es el token
+                user_info = self.get_user_info(tokens["access_token"])
+                if user_info and 'email' in user_info:
+                    from services.supabase_service import SupabaseService # Importación local para evitar dependencias circulares
+                    supabase = SupabaseService()
+                    supabase.save_refresh_token(user_info['email'], tokens["refresh_token"])
+            except Exception as e:
+                print(f"Error automátic saving refresh token: {str(e)}")
+
+        # Por ahora devuelves el token para que tu app no falle, 
+        # pero ya tienes acceso al refresh_token para guardarlo en Supabase
+        return tokens["access_token"]
 
     def get_user_info(self, access_token):
         """

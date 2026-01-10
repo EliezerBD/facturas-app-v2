@@ -149,67 +149,91 @@ class GmailService:
     def download_attachments_as_zip(self, selected_emails):
         """
         Descarga los adjuntos y extrae metadatos si son JSON de DTE.
+        Implementa lógica de agrupación y renombrado inteligente basado en el código de generación del DTE.
         """
+        import json  # Importación local para asegurar disponibilidad
+        
         zip_buffer = io.BytesIO()
-        all_extracted_metadata = [] # Nueva lista para guardar los datos de los JSON
+        all_extracted_metadata = []
         
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+             # Set para manejar colisiones de nombres dentro del ZIP
             filenames_added = set()
 
             for email in selected_emails:
                 msg_id = email['id']
-                for attachment in email.get('attachments', []):
+                attachments = email.get('attachments', [])
+                
+                # --- PASO 1: Buscar el código de generación en los JSON del correo ---
+                nombre_factura_oficial = None
+                emisor_dte = None
+
+                for att in attachments:
+                    if att['filename'].lower().endswith('.json'):
+                        # Descargamos momentáneamente para leerlo y buscar el código
+                        att_id = att['attachmentId']
+                        try:
+                            raw_data = self.service.users().messages().attachments().get(
+                                userId='me', messageId=msg_id, id=att_id
+                            ).execute()
+                            file_content = base64.urlsafe_b64decode(raw_data['data'].encode('UTF-8'))
+                            
+                            dict_data = json.loads(file_content.decode('utf-8'))
+                            # Extraemos el código de Generación (identificador único de Hacienda)
+                            codigo = dict_data.get('identificacion', {}).get('codigoGeneracion')
+                            
+                            if codigo:
+                                nombre_factura_oficial = f"DTE_{codigo}"
+                                emisor_dte = dict_data.get('emisor', {}).get('nombre')
+                                
+                                # Guardamos los metadatos para el historial
+                                all_extracted_metadata.append({
+                                    'codigo_generacion': codigo,
+                                    'emisor_nombre': emisor_dte,
+                                    'filename': att['filename'] # Guardamos referencia al nombre original
+                                })
+                                break # Ya encontramos el identificador principal, no es necesario seguir buscando en otros JSON
+                        except Exception as e:
+                            print(f"Error analizando JSON {att['filename']}: {str(e)}")
+                            continue
+
+                # --- PASO 2: Descargar y renombrar todos los archivos del mismo correo ---
+                for att in attachments:
                     try:
-                        # Llamamos a la función y capturamos si extrajo info del DTE
-                        dte_data = self._add_attachment_to_zip(zip_file, msg_id, attachment, filenames_added)
-                        if dte_data:
-                            all_extracted_metadata.append(dte_data)
+                        att_id = att['attachmentId']
+                        original_filename = att['filename']
+                        ext = os.path.splitext(original_filename)[1] # Obtiene extensión (.pdf, .json, etc.)
+                        
+                        # Definir el nuevo nombre: Oficial si se encontró código, o mantener original
+                        if nombre_factura_oficial:
+                            nuevo_nombre = f"{nombre_factura_oficial}{ext}"
+                        else:
+                            nuevo_nombre = original_filename
+                            
+                        # Manejo de colisiones: si el nombre ya existe en el ZIP, agregar contador
+                        # Esto es vital si procesamos varios correos que no tengan DTE (ej. "factura.pdf")
+                        nombre_final = nuevo_nombre
+                        counter = 1
+                        while nombre_final in filenames_added:
+                            base, f_ext = os.path.splitext(nuevo_nombre)
+                            nombre_final = f"{base}_{counter}{f_ext}"
+                            counter += 1
+                        filenames_added.add(nombre_final)
+
+                        # Descarga real del archivo para guardarlo
+                        att_data_raw = self.service.users().messages().attachments().get(
+                            userId='me', messageId=msg_id, id=att_id
+                        ).execute()
+                        file_data = base64.urlsafe_b64decode(att_data_raw['data'].encode('UTF-8'))
+                        
+                        # Escribir en el archivo ZIP con el nombre final determinado
+                        zip_file.writestr(nombre_final, file_data)
+                        
                     except Exception as e:
-                        print(f"Error descargando el archivo {attachment.get('filename')}: {str(e)}")
-                        zip_file.writestr(f"ERROR_{attachment.get('filename')}.txt", str(e))
+                        print(f"Error descargando/guardando el archivo {att.get('filename')}: {str(e)}")
+                        # Opcional: Escribir un archivo de error en el zip
+                        zip_file.writestr(f"ERROR_{att.get('filename')}.txt", str(e))
 
         zip_buffer.seek(0)
-        return zip_buffer, all_extracted_metadata # Ahora devolvemos buffer y metadatos
-
-    def _add_attachment_to_zip(self, zip_file, msg_id, attachment, filenames_added):
-        """
-        Descarga el adjunto y, si es JSON, extrae la información del DTE.
-        """
-        import json
-        att_id = attachment['attachmentId']
-        filename = attachment['filename']
-        
-        # Manejar colisiones de nombres
-        original_filename = filename
-        counter = 1
-        while filename in filenames_added:
-            base, ext = os.path.splitext(original_filename)
-            filename = f"{base}_{counter}{ext}"
-            counter += 1
-        filenames_added.add(filename)
-
-        # Petición a la API de Gmail
-        attachment_data_raw = self.service.users().messages().attachments().get(
-            userId='me', messageId=msg_id, id=att_id
-        ).execute()
-        
-        file_data = base64.urlsafe_b64decode(attachment_data_raw['data'].encode('UTF-8'))
-        
-        # --- LÓGICA DE EXTRACCIÓN DTE ---
-        dte_info = None
-        if filename.lower().endswith('.json'):
-            try:
-                content = json.loads(file_data.decode('utf-8'))
-                # Extraemos los campos que me mostraste en el ejemplo
-                dte_info = {
-                    'codigo_generacion': content.get('identificacion', {}).get('codigoGeneracion'),
-                    'emisor_nombre': content.get('emisor', {}).get('nombre'),
-                    'filename': filename
-                }
-            except:
-                pass # Si no es un formato DTE válido, simplemente lo ignoramos
-        
-        # Escribir en el ZIP
-        zip_file.writestr(filename, file_data)
-        return dte_info
+        return zip_buffer, all_extracted_metadata
 
